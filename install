@@ -1,0 +1,73 @@
+#!/bin/bash
+printf "Overview of the drives:\n\n"
+fdisk -l
+
+printf "Please specify the main disk for bootloader purposes: (i.e. sda, sdb) "
+read DISK
+DISK="/dev/$DISK"
+
+printf "Please specify the partition for the root install: "
+read ROOTPART
+
+printf "Please specify the partition for the /home install: "
+read HOMEPART
+
+# partitioning of the drives
+printf "Partitioning drives...\n"
+parted -s "$DISK" mklabel msdos
+parted -s -a optimal "$DISK" mkpart primary ext4 512B 15GB
+parted -s "$DISK" set 1 boot on
+parted -s -a optimal "$DISK" mkpart primary ext4 15GB 100%
+mkfs.ext4 -F "$ROOTPART"
+mkfs.ext4 -F "$HOMEPART"
+
+# mount drives
+printf "Mounting drives...\n"
+mount "$ROOTPART" /mnt
+mount "$HOMEPART" /mnt/home
+
+printf "Updating pacman...\n"
+pacman -Syy
+
+printf "Pacstrapping...\n"
+pacstrap /mnt base base-devel grub ntp openssh sudo wget vim zsh
+
+printf "Generating fstab...\n"
+genfstab -U /mnt >> /mnt/etc/fstab
+
+printf "Entering chroot...\n"
+arch-chroot /mnt "$DISK"
+
+# hostname and username 
+HOST=vexation
+USERNAME=rik
+HOME_DIR="/home/${USERNAME}"
+echo DISK="$1", HOST="$HOST", USERNAME="$USERNAME", HOME_DIR="$HOME_DIR"
+
+# install bootloader
+printf "Installing grub..."
+grub-install --target=i386-pc --recheck "$DISK"
+grub-mkconfig -o /boot/grub/grub.cfg
+
+echo "$HOST" > /etc/hostname
+
+useradd -m -G wheel,storage,power,audio -s /bin/bash "$USERNAME"
+
+# setting timezone
+ln -sf /usr/share/zoneinfo/Europe/Amsterdam /etc/localtime
+hwclock --systohc
+
+# set DNS 
+echo 'name_servers="8.8.8.8 8.8.4.4"' >> /etc/resolvconf.conf
+
+# set lang settings
+echo en_GB.UTF-8 UTF-8 > /etc/locale.gen
+echo LANG=en_GB.UTF-8 > /etc/locale.conf
+locale-gen
+
+# set vim as default editor
+echo -e 'EDITOR=vim' > /etc/environment
+
+umount -R /mnt/home
+umount -R /mnt
+systemctl reboot
