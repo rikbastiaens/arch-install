@@ -7,7 +7,7 @@ echo DISK="$1", HOST="$HOST", USERNAME="$USERNAME", HOME_DIR="$HOME_DIR"
 
 # install bootloader
 printf "Installing grub..."
-grub-install --target=i386-pc 
+grub-install "$1" --target=i386-pc 
 grub-mkconfig -o /boot/grub/grub.cfg
 
 # set system hostname
