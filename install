@@ -68,6 +68,6 @@ locale-gen
 # set vim as default editor
 echo -e 'EDITOR=vim' > /etc/environment
 
-umount -R /mnt/home
-umount -R /mnt
-systemctl reboot
+#umount -R /mnt/home
+#umount -R /mnt
+#systemctl reboot
