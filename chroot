@@ -1,0 +1,31 @@
+#!/bin/bash
+# hostname and username 
+HOST=vexation
+USERNAME=rik
+HOME_DIR="/home/${USERNAME}"
+echo DISK="$1", HOST="$HOST", USERNAME="$USERNAME", HOME_DIR="$HOME_DIR"
+
+# install bootloader
+printf "Installing grub..."
+grub-install --target=i386-pc --recheck "$1"
+grub-mkconfig -o /boot/grub/grub.cfg
+
+echo "$HOST" > /etc/hostname
+
+useradd -m -G wheel,storage,power,audio -s /bin/bash "$USERNAME"
+
+# setting timezone
+ln -sf /usr/share/zoneinfo/Europe/Amsterdam /etc/localtime
+hwclock --systohc
+
+# set DNS 
+echo 'name_servers="8.8.8.8 8.8.4.4"' >> /etc/resolvconf.conf
+
+# set lang settings
+echo en_GB.UTF-8 UTF-8 > /etc/locale.gen
+echo LANG=en_GB.UTF-8 > /etc/locale.conf
+locale-gen
+
+# set vim as default editor
+echo -e 'EDITOR=vim' > /etc/environment
+
