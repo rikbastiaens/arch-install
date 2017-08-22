@@ -23,6 +23,9 @@ mkfs.ext4 -F "$HOMEPART"
 
 # mount drives
 printf "Mounting drives...\n"
+
+printf "$ROOTPART & $HOMEPART"
+
 mount "$ROOTPART" /mnt
 mount "$HOMEPART" /mnt/home
 df
