@@ -10,22 +10,30 @@ printf "Installing grub..."
 grub-install --target=i386-pc --recheck "$1"
 grub-mkconfig -o /boot/grub/grub.cfg
 
+# set system hostname
+printf "Setting hostname..."
 echo "$HOST" > /etc/hostname
 
+# create user
+printf "Creating user $USERNAME..."
 useradd -m -G wheel,storage,power,audio -s /bin/bash "$USERNAME"
 
 # setting timezone
+printf "Setting timezone..."
 ln -sf /usr/share/zoneinfo/Europe/Amsterdam /etc/localtime
 hwclock --systohc
 
 # set DNS 
+printf "Setting DNS..."
 echo 'name_servers="8.8.8.8 8.8.4.4"' >> /etc/resolvconf.conf
 
 # set lang settings
+printf "Setting up language files..."
 echo en_GB.UTF-8 UTF-8 > /etc/locale.gen
 echo LANG=en_GB.UTF-8 > /etc/locale.conf
 locale-gen
 
 # set vim as default editor
+printf "Setting vim as default editor..."
 echo -e 'EDITOR=vim' > /etc/environment
 
