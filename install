@@ -8,9 +8,11 @@ DISK="/dev/$DISK"
 
 printf "Please specify the partition for the root install: "
 read ROOTPART
-
+ROOTPART="/dev/$ROOTPART"
 printf "Please specify the partition for the /home install: "
 read HOMEPART
+HOMEPART="/dev/$HOMEPART"
+
 
 # partitioning of the drives
 printf "Partitioning drives...\n"
