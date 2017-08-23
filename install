@@ -43,7 +43,6 @@ printf "Generating fstab...\n"
 genfstab -U /mnt >> /mnt/etc/fstab
 
 cp ./chroot.sh /mnt
-cp ~/.ssh/authorized_keys /mnt
 arch-chroot /mnt ./chroot.sh "$DISK"
 rm /mnt/chroot.sh
 

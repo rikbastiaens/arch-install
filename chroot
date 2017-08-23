@@ -37,3 +37,8 @@ locale-gen
 printf "Setting vim as default editor..."
 echo -e 'EDITOR=vim' > /etc/environment
 
+systemctl enable sshd.service
+systemctl enable dhcpcd.service
+
+read test
+
