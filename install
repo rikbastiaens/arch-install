@@ -1,36 +1,36 @@
 #!/bin/bash
+
+DISK="/dev/sda"
+
+
 printf "Overview of the drives:\n\n"
 fdisk -l
 
-printf "Please specify the main disk for bootloader purposes: (i.e. sda, sdb) "
-read DISK
-DISK="/dev/$DISK"
-
-printf "Please specify the partition for the root install: "
-read ROOTPART
-ROOTPART="/dev/$ROOTPART"
-printf "Please specify the partition for the /home install: "
-read HOMEPART
-HOMEPART="/dev/$HOMEPART"
+# Update system clock
+timedatectl set-ntp true
 
 
-# partitioning of the drives
 printf "Partitioning drives...\n"
+# create partitioning table
 parted -s "$DISK" mklabel msdos
-parted -s -a optimal "$DISK" mkpart primary ext4 512B 15GB
+
+# create root partition
+parted -s "$DISK" mkpart primary 0% 15GB
 parted -s "$DISK" set 1 boot on
-parted -s -a optimal "$DISK" mkpart primary ext4 15GB 100%
-mkfs.ext4 -F "$ROOTPART"
-mkfs.ext4 -F "$HOMEPART"
+
+# create home partition
+parted -s "$DISK" mkpart primary 15GB 100%
+
+# format drives
+mkfs.ext4 -F "${DISK}1" 
+mkfs.ext4 -F "${DISK}2"
 
 # mount drives
 printf "Mounting drives...\n"
 
-printf "$ROOTPART & $HOMEPART"
-
-mount "$ROOTPART" /mnt
+mount "${DISK}1" /mnt
 mkdir /mnt/home
-mount "$HOMEPART" /mnt/home
+mount "${DISK}2" /mnt/home
 df
 
 printf "Updating pacman...\n"
@@ -42,11 +42,11 @@ pacstrap /mnt base base-devel grub openssh sudo ntp wget vim zsh
 printf "Generating fstab...\n"
 genfstab -U /mnt >> /mnt/etc/fstab
 
-printf "Entering chroot...\n"
-chmod +x chroot
-cp ./chroot /mnt
-arch-chroot /mnt ./chroot "$DISK"
+cp ./chroot.sh /mnt
+cp ~/.ssh/authorized_keys /mnt
+arch-chroot /mnt ./chroot.sh "$DISK"
+rm /mnt/chroot.sh
 
 umount -R /mnt/home
 umount -R /mnt
-#systemctl reboot
+systemctl reboot
